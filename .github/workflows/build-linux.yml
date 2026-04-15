@@ -59,6 +59,7 @@ jobs:
 
     - name: Checkout required submodule
       run: |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
         git submodule sync ClipboardListener
         git submodule update --init --force --depth=1 --recursive ClipboardListener
       
