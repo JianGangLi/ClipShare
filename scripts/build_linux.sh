@@ -106,7 +106,9 @@ pack_fastforge() {
 APPIMAGE_DIR="${SCRIPT_DIR}/quick-appimage"
 # AppImage 输出目录
 APPIMAGE_OUTPUT_DIR="${PROJECT_ROOT}/build/appimage"
+APPIMAGE_TOOL_DIR="${PROJECT_ROOT}/build/appimage-tools"
 mkdir -p ${APPIMAGE_OUTPUT_DIR}
+mkdir -p ${APPIMAGE_TOOL_DIR}
 BIN_OUTPUT_DIR="${PROJECT_ROOT}/build/linux-bin"
 
 ensure_bundle_exists() {
@@ -170,7 +172,7 @@ pack_appimage() {
     ensure_bundle_exists
 
     # 下载 appimagetool（如果不存在）
-    APPIAGETOOL="${APPIMAGE_OUTPUT_DIR}/appimagetool-x86_64.AppImage"
+    APPIAGETOOL="${APPIMAGE_TOOL_DIR}/appimagetool-x86_64.AppImage"
     if [ ! -f "$APPIAGETOOL" ]; then
         echo "下载 appimagetool..."
         wget --no-check-certificate --progress=bar -O "$APPIAGETOOL" \

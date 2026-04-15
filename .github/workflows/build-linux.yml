@@ -13,10 +13,45 @@ on:
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --platform linux/amd64
     env:
       APPIMAGE_EXTRACT_AND_RUN: "1"
+      FLUTTER_VERSION: "3.35.3"
 
     steps:
+    - name: Install Arch Linux dependencies
+      run: |
+        pacman -Syu --noconfirm --needed \
+          clang \
+          cmake \
+          curl \
+          desktop-file-utils \
+          fuse2 \
+          gdk-pixbuf2 \
+          git \
+          gtk3 \
+          imagemagick \
+          libayatana-appindicator \
+          libkeybinder3 \
+          libnotify \
+          libsecret \
+          libx11 \
+          libxext \
+          libxkbcommon \
+          libxtst \
+          ninja \
+          pkgconf \
+          tar \
+          unzip \
+          wayland \
+          wayland-protocols \
+          wget \
+          which \
+          xz \
+          zip
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
@@ -27,38 +62,17 @@ jobs:
         git submodule sync ClipboardListener
         git submodule update --init --force --depth=1 --recursive ClipboardListener
       
-    - name: Install Linux dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          clang \
-          cmake \
-          desktop-file-utils \
-          imagemagick \
-          libayatana-appindicator3-dev \
-          libgdk-pixbuf-2.0-dev \
-          libgtk-3-dev \
-          libkeybinder-3.0-dev \
-          liblzma-dev \
-          libnotify-dev \
-          libsecret-1-dev \
-          libwayland-bin \
-          libwayland-dev \
-          libx11-dev \
-          libxext-dev \
-          libxkbcommon-dev \
-          libxtst-dev \
-          ninja-build \
-          pkg-config \
-          wayland-protocols \
-          wget
-
     - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        channel: stable
-        flutter-version: 3.35.3
-        cache: true
+      run: |
+        curl -L \
+          "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
+          -o /tmp/flutter.tar.xz
+        tar -C /opt -xf /tmp/flutter.tar.xz
+        echo "/opt/flutter/bin" >> "$GITHUB_PATH"
+        echo "/opt/flutter/bin/cache/dart-sdk/bin" >> "$GITHUB_PATH"
+        /opt/flutter/bin/flutter config --no-analytics
+        /opt/flutter/bin/dart --disable-analytics
+        /opt/flutter/bin/flutter --version
 
     - name: Flutter pub get
       run: |
@@ -73,7 +87,7 @@ jobs:
         ./scripts/build_linux.sh pack_appimage
         ./scripts/build_linux.sh pack_bin
         mkdir -p output
-        cp build/appimage/*.AppImage output/
+        cp build/appimage/ClipShare-*.AppImage output/
         cp build/linux-bin/*.tar.gz output/
         cp build/linux-bin/*.tar.gz.sha256 output/
         cd output
