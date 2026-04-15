@@ -1158,7 +1158,11 @@ class ConfigService extends GetxService {
       type = "Windows";
     } else if (Platform.isLinux) {
       var linuxInfo = await deviceInfo.linuxInfo;
-      guid = CryptoUtil.toMD5(linuxInfo.id);
+      // linuxInfo.id is the distro id from /etc/os-release, e.g. "arch".
+      // Use /etc/machine-id instead so different Linux machines do not collide.
+      guid = CryptoUtil.toMD5(
+        linuxInfo.machineId.isNullOrEmpty ? linuxInfo.id : linuxInfo.machineId!,
+      );
       name = linuxInfo.name;
       type = "Linux";
     } else if (Platform.isMacOS) {
