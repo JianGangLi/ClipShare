@@ -20,7 +20,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        submodules: recursive
+        submodules: false
+
+    - name: Checkout required submodule
+      run: |
+        git submodule sync ClipboardListener
+        git submodule update --init --force --depth=1 --recursive ClipboardListener
       
     - name: Install Linux dependencies
       run: |
