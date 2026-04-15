@@ -72,6 +72,7 @@ jobs:
           "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
           -o /tmp/flutter.tar.xz
         tar -C /opt -xf /tmp/flutter.tar.xz
+        git config --global --add safe.directory /opt/flutter
         echo "/opt/flutter/bin" >> "$GITHUB_PATH"
         echo "/opt/flutter/bin/cache/dart-sdk/bin" >> "$GITHUB_PATH"
         /opt/flutter/bin/flutter config --no-analytics
