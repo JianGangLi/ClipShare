@@ -107,6 +107,58 @@ APPIMAGE_DIR="${SCRIPT_DIR}/quick-appimage"
 # AppImage 输出目录
 APPIMAGE_OUTPUT_DIR="${PROJECT_ROOT}/build/appimage"
 mkdir -p ${APPIMAGE_OUTPUT_DIR}
+BIN_OUTPUT_DIR="${PROJECT_ROOT}/build/linux-bin"
+
+ensure_bundle_exists() {
+    if [ ! -d "${BUNDLE_DIR}" ]; then
+        echo "错误: 构建目录不存在: ${BUNDLE_DIR}"
+        echo "请先运行: $0 build"
+        exit 1
+    fi
+
+    if [ ! -f "${BUNDLE_DIR}/clipshare" ]; then
+        echo "错误: 可执行文件不存在: ${BUNDLE_DIR}/clipshare"
+        exit 1
+    fi
+}
+
+pack_bin() {
+    echo "========================================="
+    echo "打包 Linux 二进制"
+    echo "========================================="
+    echo "版本: ${VERSION}+${BUILD_NUMBER}"
+    echo ""
+
+    ensure_bundle_exists
+
+    local arch
+    arch=$(uname -m)
+    local package_name="ClipShare-${VERSION}-linux-${arch}"
+    local package_dir="${BIN_OUTPUT_DIR}/${package_name}"
+    local output_file="${BIN_OUTPUT_DIR}/${package_name}.tar.gz"
+
+    rm -rf "${package_dir}"
+    mkdir -p "${package_dir}"
+    cp -a "${BUNDLE_DIR}/." "${package_dir}/"
+    chmod +x "${package_dir}/clipshare"
+
+    mkdir -p "${BIN_OUTPUT_DIR}"
+    tar -C "${BIN_OUTPUT_DIR}" -czf "${output_file}" "${package_name}"
+    (
+        cd "${BIN_OUTPUT_DIR}"
+        sha256sum "${package_name}.tar.gz" > "${package_name}.tar.gz.sha256"
+    )
+
+    echo ""
+    echo "========================================="
+    echo "Linux 二进制打包成功!"
+    echo "========================================="
+    echo "输出文件: ${output_file}"
+    echo "校验文件: ${output_file}.sha256"
+    echo "文件大小: $(du -h "${output_file}" | cut -f1)"
+    echo ""
+}
+
 pack_appimage() {
     echo "========================================="
     echo "打包 AppImage"
@@ -115,18 +167,7 @@ pack_appimage() {
     echo "版本: ${VERSION}+${BUILD_NUMBER}"
     echo ""
 
-    # 检查构建目录是否存在
-    if [ ! -d "${BUNDLE_DIR}" ]; then
-        echo "错误: 构建目录不存在: ${BUNDLE_DIR}"
-        echo "请先运行: $0 build"
-        exit 1
-    fi
-
-    # 检查可执行文件
-    if [ ! -f "${BUNDLE_DIR}/clipshare" ]; then
-        echo "错误: 可执行文件不存在: ${BUNDLE_DIR}/clipshare"
-        exit 1
-    fi
+    ensure_bundle_exists
 
     # 下载 appimagetool（如果不存在）
     APPIAGETOOL="${APPIMAGE_OUTPUT_DIR}/appimagetool-x86_64.AppImage"
@@ -247,6 +288,7 @@ show_help() {
     echo "使用方法:"
     echo "  $0 build            - 构建 Flutter Linux Release 版本"
     echo "  $0 pack             - 打包deb,appimage,rpm"
+    echo "  $0 pack_bin         - 打包linux二进制tar.gz"
     echo "  $0 pack_appimage    - 打包appimage，用于开发过程快速打包"
     echo "  $0 help             - 显示此帮助信息"
     echo ""
@@ -261,6 +303,9 @@ main() {
             ;;
         pack)
             pack_fastforge
+            ;;
+        pack_bin)
+            pack_bin
             ;;
         pack_appimage)
             pack_appimage
