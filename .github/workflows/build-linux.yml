@@ -57,9 +57,12 @@ jobs:
       with:
         submodules: false
 
-    - name: Checkout required submodule
+    - name: Mark workspace as safe git directory
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - name: Checkout required submodule
+      run: |
         git submodule sync ClipboardListener
         git submodule update --init --force --depth=1 --recursive ClipboardListener
       
